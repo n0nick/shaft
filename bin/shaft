@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+
+SHAFT_DIR = File.join(Dir.home, ".shaft")
+
+require 'rubygems'
+require 'thor'
+require 'yaml'
+
+class ShaftCLI < Thor
+  include Thor::Actions
+
+  map "-h" => :help
+  map "-l" => :list
+
+  desc "list", "Lists active tunnels"
+  method_options %w( short -s ) => :boolean
+  def list
+    active = get_active
+    unless active.empty?
+      if options[:short]
+        say active.keys.join(",")
+      else
+        say "Listing currently active tunnels:"
+        print_table active
+      end
+    else
+      say "No tunnels are currently active." unless options[:short]
+    end
+  end
+
+  #TODO 'list all available' task
+
+  desc "start [NAME]", "Starts a tunnel"
+  method_options :name => :string
+  def start(name)
+    active = get_active
+    if active.has_key? name
+      say "Error: tunnel '#{name}' already active!"
+    else
+      c = read_yaml("#{name}.yml")
+      unless c.nil?
+        bind = "#{c['bind']['client-port']}:#{c['bind']['host']}:#{c['bind']['host-port']}"
+        host = "#{c['username']}@#{c['host']}"
+
+        say "Starting tunnel '#{name}'..."
+        pid = Process.spawn("ssh -N -p #{c['port']} #{host} -L #{bind}")
+        Process.detach pid
+        say "Started with pid #{pid}."
+
+        active[name] = pid
+        set_active(active)
+      else
+        error "Tunnel '#{name}' file not found!"
+      end
+    end
+  end
+
+  desc "stop [NAME]", "Stops a tunnel"
+  method_options :name => :string
+  def stop(name)
+    active = get_active
+    if active.has_key? name
+      say "Stopping tunnel '#{name}' at pid #{active[name]}..."
+      Process.kill "INT", active[name]
+      say "Stopped."
+
+      #TODO verify killing?
+
+      active.delete(name)
+      set_active(active)
+    else
+      error "Tunnel '#{name}' does not seem to be active!"
+    end
+  end
+
+  private
+  def read_yaml(filename)
+    path = File.join(SHAFT_DIR, filename)
+    YAML::load(File.open(path)) if File.exist?(path)
+  end
+
+  def get_active
+    active = read_yaml(".active")
+    if active.nil?
+      active = {}
+      set_active(active)
+    end
+    active
+  end
+
+  def set_active(active)
+    unless File.exist?(SHAFT_DIR) and File.directory?(SHAFT_DIR)
+      Dir.mkdir(SHAFT_DIR)
+    end
+
+    File.open(File.join(SHAFT_DIR, '.active'), 'w') { |f|
+      f.write(active.to_yaml)
+    }
+  end
+
+end
+
+ShaftCLI.start
