@@ -44,11 +44,17 @@ class ShaftCLI < Thor
     else
       c = read_yaml("#{name}.yml")
       unless c.nil?
-        bind = "#{c['bind']['client-port']}:#{c['bind']['host']}:#{c['bind']['host-port']}"
-        host = "#{c['username']}@#{c['host']}"
+        begin
+          port = c['port']
+          bind = "#{c['bind']['client-port']}:#{c['bind']['host']}:#{c['bind']['host-port']}"
+          host = "#{c['username']}@#{c['host']}"
+        rescue NoMethodError
+          error "Tunnel file for '#{name}' appears to be invalid!"
+          return
+        end
 
         say "Starting tunnel '#{name}'..."
-        pid = Process.spawn("ssh -N -p #{c['port']} #{host} -L #{bind}")
+        pid = Process.spawn("ssh -N -p #{port} #{host} -L #{bind}")
         Process.detach pid
         say "Started with pid #{pid}."
 
