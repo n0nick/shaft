@@ -1,0 +1,2 @@
+1. Write tests.
+2. Verify killing of ssh process after 'stop' task.
