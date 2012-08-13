@@ -1,2 +1,4 @@
 1. Write tests.
 2. Verify killing of ssh process after 'stop' task.
+3. If tunnel process already died, we're stuck with a dead entry in `.active`.
+4. Move TODO items to Github issues.
