@@ -1,24 +1,62 @@
-# Shaft
+# Shaft - right on.
 
-TODO: Write a gem description
+<pre>
+ $$$$$$\  $$\   $$\  $$$$$$\  $$$$$$$$\ $$$$$$$$\
+$$  __$$\ $$ |  $$ |$$  __$$\ $$  _____|\__$$  __|
+$$ /  \__|$$ |  $$ |$$ /  $$ |$$ |         $$ |
+\$$$$$$\  $$$$$$$$ |$$$$$$$$ |$$$$$\       $$ |
+ \____$$\ $$  __$$ |$$  __$$ |$$  __|      $$ |
+$$\   $$ |$$ |  $$ |$$ |  $$ |$$ |         $$ |
+\$$$$$$  |$$ |  $$ |$$ |  $$ |$$ |         $$ |
+ \______/ \__|  \__|\__|  \__|\__|         \__|
+</pre>
+
+An SSH tunnel assistant for the command line.
+
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'shaft'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
+As easy as:
 
     $ gem install shaft
 
 ## Usage
 
-TODO: Write usage instructions here
+Your tunnel configurations need to be stored as
+[YAML](http://www.yaml.org) files on your `~/.shaft/` dir.
+
+See 'Configuration' for instructions on how to format these
+files.
+
+* Use `shaft all` to get a list of all available tunnels.
+* Use `shaft list` to see which tunnels are currently active.
+  - You could use the `--short` option to get only the names
+    of those lines (this could be useful to insert into your
+    shell prompt. Just saying).
+* `shaft start [NAME]` would start the tunnel of the same name.
+* `shaft stop [NAME]` would stop the tunnel of the given name.
+
+## Configuration
+
+Each SSH tunnel you want to have configured needs to be defined
+in YAML format and stored in `~/.shaft/name.yml`, where `name`
+is the tunnel name that would be used for `shaft`.
+
+An example configuration would be:
+
+    port: 22
+    username: user
+    host: remote-host
+    bind:
+      client-port: 9999
+      host: host
+      host-port: 8888
+
+
+Starting the tunnel defined in this example would be equivalent
+to running:
+
+      $ ssh -N -p 22 user@remote-host -L 9999:host:8888
 
 ## Contributing
 
