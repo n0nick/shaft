@@ -5,8 +5,8 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Sagie Maoz"]
   gem.email         = ["sagie2maoz.info"]
   gem.description   = %q{SSH tunnels manager}
-  gem.summary       = %q{Assists in starting and stopping SSH tunnel connections}
-  gem.homepage      = ""
+  gem.summary       = %q{An SSH tunnel assistant for the command line.}
+  gem.homepage      = "http://github.com/n0nick/shaft"
 
   gem.add_dependency "thor"
 
