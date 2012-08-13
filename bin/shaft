@@ -28,7 +28,12 @@ class ShaftCLI < Thor
     end
   end
 
-  #TODO 'list all available' task
+  desc "all", "Lists all available tunnels"
+  def all
+    say "Listing all available tunnels:"
+    tunnels = Dir["#{SHAFT_DIR}/*.yml"].map { |f| File.basename(f, ".yml") }
+    print_in_columns tunnels
+  end
 
   desc "start [NAME]", "Starts a tunnel"
   method_options :name => :string
