@@ -84,6 +84,12 @@ class ShaftCLI < Thor
     end
   end
 
+  desc "restart [NAME]", "Restarts a tunnel"
+  method_options :name => :string
+  def restart(name)
+    stop(name) && start(name)
+  end
+
   private
   def read_yaml(filename)
     path = File.join(SHAFT_DIR, filename)
