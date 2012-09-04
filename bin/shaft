@@ -72,8 +72,12 @@ class ShaftCLI < Thor
     active = get_active
     if active.has_key? name
       say "Stopping tunnel '#{name}' at pid #{active[name]}..."
-      Process.kill "INT", active[name]
-      say "Stopped."
+      begin
+        Process.kill "INT", active[name]
+        say "Stopped."
+      rescue Errno::ESRCH
+        say "Tunnel wasn't active (zombie shaft item)."
+      end
 
       #TODO verify killing?
 
