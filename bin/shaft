@@ -81,15 +81,21 @@ class ShaftCLI < Thor
       say "Stopping tunnel '#{name}' at pid #{active[name]}..."
       begin
         Process.kill "INT", active[name]
-        say "Stopped."
       rescue Errno::ESRCH
         say "Tunnel wasn't active (zombie shaft item)."
       end
 
-      #TODO verify killing?
+      # verify killing
+      tunnel = get_tunnel(name)
+      if local_port_used?(tunnel['bind']['client-port'])
+        error "Could not stop tunnel process!"
+      else
+        say "Stopped."
 
-      active.delete(name)
-      set_active(active)
+        # set as inactive
+        active.delete(name)
+        set_active(active)
+      end
     else
       error "Tunnel '#{name}' does not seem to be active!"
     end
