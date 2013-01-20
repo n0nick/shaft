@@ -53,6 +53,10 @@ class ShaftCLI < Thor
           return
         end
 
+        if local_port_used? c['bind']['client-port']
+          return
+        end
+
         say "Starting tunnel '#{name}'..."
         pid = Process.spawn("ssh -N -p #{port} #{host} -L #{bind}")
         Process.detach pid
@@ -117,6 +121,17 @@ class ShaftCLI < Thor
     File.open(File.join(SHAFT_DIR, '.active'), 'w') { |f|
       f.write(active.to_yaml)
     }
+  end
+
+  def local_port_used?(port)
+    usage = `lsof -n -i4TCP:#{port} | grep LISTEN`
+    if usage.length > 0
+      error "Error: Local port #{port} is used by:"
+      puts usage
+      true
+    else
+      false
+    end
   end
 
 end
