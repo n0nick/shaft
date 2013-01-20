@@ -38,22 +38,24 @@ files.
 
 ## Configuration
 
-Each SSH tunnel you want to have configured needs to be defined
-in YAML format and stored in `~/.shaft/name.yml`, where `name`
-is the tunnel name that would be used for `shaft`.
+The SSH tunnels configuration Shaft will use are all stored in
+a single YAML file under `~/.shaft`.
+
+Each tunnel is represented by a key defining its name, followed
+by an object describing all of the required parameters.
 
 An example configuration would be:
 
-    port: 22
-    username: user
-    host: remote-host
-    bind:
-      client-port: 9999
-      host: host
-      host-port: 8888
+    foobar:
+        port: 22
+        username: user
+        host: remote-host
+        bind:
+          client-port: 9999
+          host: host
+          host-port: 8888
 
-
-Starting the tunnel defined in this example would be equivalent
+Calling Shaft with `$ shaft start foobar` would be equivalent
 to running:
 
       $ ssh -N -p 22 user@remote-host -L 9999:host:8888
