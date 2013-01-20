@@ -22,8 +22,8 @@ As easy as:
 
 ## Usage
 
-Your tunnel configurations need to be stored as
-[YAML](http://www.yaml.org) files on your `~/.shaft/` dir.
+Your tunnel configurations need to be stored as records in
+a [YAML](http://www.yaml.org) formatted `~/.shaft` file.
 
 See 'Configuration' for instructions on how to format these
 files.
