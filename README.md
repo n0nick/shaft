@@ -29,7 +29,7 @@ See 'Configuration' for instructions on how to format these
 files.
 
 * Use `shaft all` to get a list of all available tunnels.
-* Use `shaft list` to see which tunnels are currently active.
+* Use `shaft active` to see which tunnels are currently active.
   - You could use the `--short` option to get only the names
     of those lines (this could be useful to insert into your
     shell prompt. Just saying).
