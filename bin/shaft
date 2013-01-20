@@ -127,7 +127,10 @@ class ShaftCLI < Thor
   end
 
   def read_yaml(file)
-    if File.exists?(file)
+    if File.directory?(SHAFT_CONFIG)
+      error "Shaft v0.7 and up uses a single-file config.\nConsult the Readme at http://git.io/Zs3viQ ."
+      {}
+    elsif File.exists?(file)
       YAML::load(File.open(file))
     else
       {}
