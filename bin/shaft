@@ -54,7 +54,9 @@ class ShaftCLI < Thor
           return
         end
 
-        if local_port_used? c['bind']['client-port']
+        used = local_port_used?(c['bind']['client-port'])
+        if used
+          error "Local port #{port} is used by:\n#{used}"
           return
         end
 
@@ -129,9 +131,7 @@ class ShaftCLI < Thor
   def local_port_used?(port)
     usage = `lsof -n -i4TCP:#{port} | grep LISTEN`
     if usage.length > 0
-      error "Error: Local port #{port} is used by:"
-      puts usage
-      true
+      usage
     else
       false
     end
