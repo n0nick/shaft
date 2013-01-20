@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-SHAFT_DIR = File.join(Dir.home, ".shaft")
+SHAFT_CONFIG = File.join(Dir.home, ".shaft")
+SHAFT_ACTIVE = File.join(Dir.home, ".shaft.active")
 
 require 'rubygems'
 require 'thor'
@@ -31,7 +32,7 @@ class ShaftCLI < Thor
   desc "all", "Lists all available tunnels"
   def all
     say "Listing all available tunnels:"
-    tunnels = Dir["#{SHAFT_DIR}/*.yml"].map { |f| File.basename(f, ".yml") }
+    tunnels = get_config.keys
     print_in_columns tunnels
   end
 
@@ -42,14 +43,14 @@ class ShaftCLI < Thor
     if active.has_key? name
       say "Error: tunnel '#{name}' already active!"
     else
-      c = read_yaml("#{name}.yml")
+      c = get_tunnel(name)
       unless c.nil?
         begin
           port = c['port']
           bind = "#{c['bind']['client-port']}:#{c['bind']['host']}:#{c['bind']['host-port']}"
           host = "#{c['username']}@#{c['host']}"
         rescue NoMethodError
-          error "Tunnel file for '#{name}' appears to be invalid!"
+          error "Tunnel configuration for '#{name}' appears to be invalid!"
           return
         end
 
@@ -65,7 +66,7 @@ class ShaftCLI < Thor
         active[name] = pid
         set_active(active)
       else
-        error "Tunnel '#{name}' file not found!"
+        error "Tunnel '#{name}' not found!"
       end
     end
   end
@@ -99,28 +100,30 @@ class ShaftCLI < Thor
   end
 
   private
-  def read_yaml(filename)
-    path = File.join(SHAFT_DIR, filename)
-    YAML::load(File.open(path)) if File.exist?(path)
+  def get_config
+    @config ||= read_yaml(SHAFT_CONFIG)
   end
 
   def get_active
-    active = read_yaml(".active")
-    if active.nil?
-      active = {}
-      set_active(active)
-    end
-    active
+    @active ||= read_yaml(SHAFT_ACTIVE)
+  end
+
+  def get_tunnel(name)
+    get_config[name] || nil
   end
 
   def set_active(active)
-    unless File.exist?(SHAFT_DIR) and File.directory?(SHAFT_DIR)
-      Dir.mkdir(SHAFT_DIR)
-    end
-
-    File.open(File.join(SHAFT_DIR, '.active'), 'w') { |f|
-      f.write(active.to_yaml)
+    File.open(SHAFT_ACTIVE, 'w') { |out|
+      YAML.dump(active, out)
     }
+  end
+
+  def read_yaml(file)
+    if File.exists?(file)
+      YAML::load(File.open(file))
+    else
+      {}
+    end
   end
 
   def local_port_used?(port)
