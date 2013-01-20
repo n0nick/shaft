@@ -77,7 +77,7 @@ class ShaftCLI < Thor
   method_options :name => :string
   def stop(name)
     active = get_active
-    if active.has_key? name
+    if active.has_key?(name)
       say "Stopping tunnel '#{name}' at pid #{active[name]}..."
       begin
         Process.kill "INT", active[name]
