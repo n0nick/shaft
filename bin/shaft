@@ -11,11 +11,11 @@ class ShaftCLI < Thor
   include Thor::Actions
 
   map "-h" => :help
-  map "-l" => :list
+  map "-l" => :active
 
-  desc "list", "Lists active tunnels"
+  desc "active", "Lists active tunnels"
   method_options %w( short -s ) => :boolean
-  def list
+  def active
     active = get_active
     unless active.empty?
       if options[:short]
