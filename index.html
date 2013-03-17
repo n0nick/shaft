@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Shaft by n0nick</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/n0nick/shaft">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/n0nick/shaft/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/n0nick/shaft/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Shaft</h1>
+          <p>An SSH tunnel assistant for the command line.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/n0nick">n0nick</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Shaft - right on.</h1>
+
+<p><img src="http://n0nick.net/n0/img/items/Shaft_logo.svg" alt="Shaft" width="500"></p>
+
+<p>An SSH tunnel assistant for the command line.</p>
+
+<h2>Installation</h2>
+
+<p>As easy as:</p>
+
+<pre><code>$ gem install shaft
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>Your tunnel configurations need to be stored as records in
+a <a href="http://www.yaml.org">YAML</a> formatted <code>~/.shaft</code> file.</p>
+
+<p>See 'Configuration' for instructions on how to format these
+files.</p>
+
+<ul>
+<li>Use <code>shaft all</code> to get a list of all available tunnels.</li>
+<li>Use <code>shaft active</code> to see which tunnels are currently active.
+
+<ul>
+<li>You could use the <code>--short</code> option to get only the names
+of those lines (this could be useful to insert into your
+shell prompt. Just saying).</li>
+</ul>
+</li>
+<li>
+<code>shaft start [NAME]</code> would start the tunnel of the same name.</li>
+<li>
+<code>shaft stop [NAME]</code> would stop the tunnel of the given name.</li>
+</ul><h2>Configuration</h2>
+
+<p>The SSH tunnels configuration Shaft will use are all stored in
+a single YAML file under <code>~/.shaft</code>.</p>
+
+<p>Each tunnel is represented by a key defining its name, followed
+by an object describing all of the required parameters.</p>
+
+<p>An example configuration would be:</p>
+
+<pre><code>foobar:
+    port: 22
+    username: user
+    host: remote-host
+    bind:
+      client-port: 9999
+      host: host
+      host-port: 8888
+</code></pre>
+
+<p>Calling Shaft with <code>$ shaft start foobar</code> would be equivalent
+to running:</p>
+
+<pre><code>  $ ssh -N -p 22 user@remote-host -L 9999:host:8888
+</code></pre>
+
+<h2>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
