@@ -60,6 +60,14 @@ to running:
 
       $ ssh -N -p 22 user@remote-host -L 9999:host:8888
 
+## ZSH Completions
+
+Run the following command:
+
+    $ shaft completions >> ~/.zshrc
+
+And restart your shell
+
 ## Contributing
 
 1. Fork it

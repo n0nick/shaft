@@ -36,6 +36,18 @@ class ShaftCLI < Thor
     print_in_columns tunnels
   end
 
+  desc "list", "Lists all available tunnels (for completions)"
+  def list
+    puts get_config.keys.join(' ')
+  end
+
+  desc "completions", "Shows the code to add to ~/.zshrc"
+  def completions
+    fpath = File.expand_path File.join(File.dirname(__FILE__), '..', 'completions')
+    puts "fpath=(#{fpath} $fpath)"
+    puts "compinit"
+  end
+
   desc "start [NAME]", "Starts a tunnel"
   method_options :name => :string
   def start(name)

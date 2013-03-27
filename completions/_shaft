@@ -1,0 +1,26 @@
+#compdef shaft
+
+_shaft() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments \
+    '1: :->command'\
+    '*: :->tunnel'
+
+
+  case $state in
+  command)
+    _arguments "1:Commands:(active start stop restart help all list completions)"
+    ;;
+  *)
+    case $words[2] in
+    start|stop|restart)
+      compadd "$@" `shaft list`
+    ;;
+    esac
+    ;;
+  esac
+}
+
+_tailr "$@"
