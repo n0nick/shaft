@@ -11,16 +11,16 @@ _shaft() {
 
   case $state in
   command)
-    _arguments "1:Commands:(active start stop restart help all list completions)"
+    _arguments "1:Commands:(active start stop restart help all completions)"
     ;;
   *)
     case $words[2] in
     start|stop|restart)
-      compadd "$@" `shaft list`
+      compadd "$@" `shaft all --short`
     ;;
     esac
     ;;
   esac
 }
 
-_tailr "$@"
+_shaft "$@"
