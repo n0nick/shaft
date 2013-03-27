@@ -30,10 +30,22 @@ class ShaftCLI < Thor
   end
 
   desc "all", "Lists all available tunnels"
+  method_options %w( short -s ) => :boolean
   def all
-    say "Listing all available tunnels:"
     tunnels = get_config.keys
-    print_in_columns tunnels
+    if options[:short]
+      puts get_config.keys.join(' ')
+    else
+      say "Listing all available tunnels:"
+      print_in_columns tunnels
+    end
+  end
+
+  desc "completions", "Shows the code to add to ~/.zshrc"
+  def completions
+    fpath = File.expand_path File.join(File.dirname(__FILE__), '..', 'completions')
+    puts "fpath=(#{fpath} $fpath)"
+    puts "compinit"
   end
 
   desc "start [NAME]", "Starts a tunnel"
