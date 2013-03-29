@@ -19,7 +19,7 @@ class ShaftCLI < Thor
     active = get_active
     unless active.empty?
       if options[:short]
-        say active.keys.join(",")
+        say active.keys.join(" ")
       else
         say "Listing currently active tunnels:"
         print_table active
