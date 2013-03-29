@@ -15,8 +15,11 @@ _shaft() {
     ;;
   *)
     case $words[2] in
-    start|stop|restart)
+    start)
       compadd "$@" `shaft all --short`
+    ;;
+    stop|restart)
+      compadd "$@" `shaft active --short`
     ;;
     esac
     ;;
