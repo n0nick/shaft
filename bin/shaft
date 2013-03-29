@@ -34,7 +34,7 @@ class ShaftCLI < Thor
   def all
     tunnels = get_config.keys
     if options[:short]
-      puts get_config.keys.join(' ')
+      say tunnels.join(' ')
     else
       say "Listing all available tunnels:"
       print_in_columns tunnels
