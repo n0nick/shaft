@@ -62,11 +62,14 @@ to running:
 
 ## ZSH Completions
 
-Run the following command:
+Shaft includes a setup file for automatic completion of tunnel names if you use the ZSH shell.
+
+To install it, you can run:
 
     $ shaft completions >> ~/.zshrc
 
-And restart your shell
+(Or output it to any file that your `.zshrc` includes).
+Don't forget to restart your shell!
 
 ## Contributing
 

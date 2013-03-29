@@ -41,7 +41,7 @@ class ShaftCLI < Thor
     end
   end
 
-  desc "completions", "Shows the code to add to ~/.zshrc"
+  desc "completions", "Prints setup code for Zsh completions"
   def completions
     fpath = File.expand_path File.join(File.dirname(__FILE__), '..', 'completions')
     puts "fpath=(#{fpath} $fpath)"
