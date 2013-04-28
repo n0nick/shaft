@@ -12,6 +12,7 @@ class ShaftCLI < Thor
 
   map "-h" => :help
   map "-l" => :active
+  map :status => :active
 
   desc "active", "Lists active tunnels"
   method_options %w( short -s ) => :boolean
