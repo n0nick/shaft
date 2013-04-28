@@ -86,31 +86,17 @@ class ShaftCLI < Thor
     end
   end
 
-  desc "stop [NAME]", "Stops a tunnel"
-  method_options :name => :string
-  def stop(name)
-    active = get_active
-    if active.has_key?(name)
-      say "Stopping tunnel '#{name}' at pid #{active[name]}..."
-      begin
-        Process.kill "INT", active[name]
-      rescue Errno::ESRCH
-        say "Tunnel wasn't active (zombie shaft item)."
+  desc "stop [NAME] [--all]", "Stops a tunnel"
+  method_option :name => :string, :required => false
+  option :all, :type => :boolean
+  def stop(name="")
+    if options[:all]
+      get_active.each_key do |tunnel|
+        _stop(tunnel)
       end
-
-      # verify killing
-      tunnel = get_tunnel(name)
-      if local_port_used?(tunnel['bind']['client-port'])
-        error "Could not stop tunnel process!"
-      else
-        say "Stopped."
-
-        # set as inactive
-        active.delete(name)
-        set_active(active)
-      end
+      say "Done stopping all tunnels."
     else
-      error "Tunnel '#{name}' does not seem to be active!"
+      _stop(name)
     end
   end
 
@@ -121,6 +107,36 @@ class ShaftCLI < Thor
   end
 
   private
+  def _stop(name)
+    if name.length > 0
+      active = get_active
+      if name && active.has_key?(name)
+        say "Stopping tunnel '#{name}' at pid #{active[name]}..."
+        begin
+          Process.kill "INT", active[name]
+        rescue Errno::ESRCH
+          say "Tunnel wasn't active (zombie shaft item)."
+        end
+
+        # verify killing
+        tunnel = get_tunnel(name)
+        if local_port_used?(tunnel['bind']['client-port'])
+          error "Could not stop tunnel process!"
+        else
+          say "Stopped."
+
+          # set as inactive
+          active.delete(name)
+          set_active(active)
+        end
+      else
+        error "Tunnel '#{name}' does not seem to be active!"
+      end
+    else
+      error "Missing tunnel name!"
+    end
+  end
+
   def get_config
     @config ||= read_yaml(SHAFT_CONFIG)
   end
