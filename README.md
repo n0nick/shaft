@@ -50,6 +50,7 @@ An example configuration would be:
         port: 22
         username: user
         host: remote-host
+        reverse: false
         bind:
           client-port: 9999
           host: host
