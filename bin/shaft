@@ -69,7 +69,7 @@ class ShaftCLI < Thor
 
         used = c['reverse'] ? false : local_port_used?(c['bind']['client-port'])
         if c['reverse']
-          say "Reverse tunnel, not checking if port open"
+          say "Reverse tunnel, skipping port check."
         end
         if used
           error "Local port #{port} is used by:\n#{used}"
@@ -77,9 +77,8 @@ class ShaftCLI < Thor
         end
 
         say "Starting tunnel '#{name}'..."
-        cmd = c['reverse'] ? "ssh -N -p #{port} #{host} -R #{bind}" : "ssh -N -p #{port} #{host} -L #{bind}"
-        say "Command: #{cmd}"
-        pid = Process.spawn(cmd)
+        flag = c['reverse'] ? 'R' : 'L'
+        pid = Process.spawn("ssh -N -p #{port} #{host} -#{flag} #{bind}")
         Process.detach pid
         say "Started with pid #{pid}."
 
