@@ -49,9 +49,44 @@ class ShaftCLI < Thor
     puts "compinit"
   end
 
-  desc "start [NAME]", "Starts a tunnel"
+  desc "start [NAME] [--all]", "Starts a tunnel"
   method_options :name => :string
-  def start(name)
+  option :all, :type => :boolean
+  def start(name="")
+    if options[:all]
+      get_config.each_key do |tunnel|
+        _start(tunnel)
+      end
+      say "Done starting all tunnels."
+    else
+      _start(name)
+    end
+  end
+
+  desc "stop [NAME] [--all]", "Stops a tunnel"
+  method_option :name => :string, :required => false
+  option :all, :type => :boolean
+  def stop(name="")
+    if options[:all]
+      get_active.each_key do |tunnel|
+        _stop(tunnel)
+      end
+      say "Done stopping all tunnels."
+    else
+      _stop(name)
+    end
+  end
+
+  desc "restart [NAME]", "Restarts a tunnel"
+  method_options :name => :string
+  def restart(name)
+    stop(name)
+    start(name)
+  end
+
+  private
+
+  def _start(name)
     active = get_active
     if active.has_key? name
       say "Error: tunnel '#{name}' already active!"
@@ -90,28 +125,6 @@ class ShaftCLI < Thor
     end
   end
 
-  desc "stop [NAME] [--all]", "Stops a tunnel"
-  method_option :name => :string, :required => false
-  option :all, :type => :boolean
-  def stop(name="")
-    if options[:all]
-      get_active.each_key do |tunnel|
-        _stop(tunnel)
-      end
-      say "Done stopping all tunnels."
-    else
-      _stop(name)
-    end
-  end
-
-  desc "restart [NAME]", "Restarts a tunnel"
-  method_options :name => :string
-  def restart(name)
-    stop(name)
-    start(name)
-  end
-
-  private
   def _stop(name)
     if name.length > 0
       active = get_active
