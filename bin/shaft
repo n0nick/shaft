@@ -107,7 +107,8 @@ class ShaftCLI < Thor
   desc "restart [NAME]", "Restarts a tunnel"
   method_options :name => :string
   def restart(name)
-    stop(name) && start(name)
+    stop(name)
+    start(name)
   end
 
   private
