@@ -1,3 +1,4 @@
+require "shaft/tunnel"
 require "shaft/version"
 
 module Shaft
