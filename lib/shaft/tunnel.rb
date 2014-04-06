@@ -21,7 +21,7 @@ module Shaft
     def start
       raise Tunnel::AlreadyActiveError.new if status == :active
 
-      @pid = Process.spawn("ssh -N -p #{host} -L #{bind}")
+      @pid = Process.spawn("ssh -N -p #{host} #{bind}")
       Process.detach @pid
 
       @status = :active
@@ -71,12 +71,13 @@ module Shaft
   end
 
   class Tunnel::Bind
-    attr_accessor :client_port, :host_port, :hostname
+    attr_accessor :client_port, :host_port, :hostname, :reverse
 
     def initialize(options)
       self.client_port = options[:client_port]
-      self.host_port = options[:host_port]
-      self.hostname = options[:hostname]
+      self.host_port   = options[:host_port]
+      self.hostname    = options[:hostname]
+      self.reverse     = !!options[:reverse]
 
       if client_port.nil? || host_port.nil? || hostname.nil?
         raise ArgumentError.new
@@ -84,7 +85,8 @@ module Shaft
     end
 
     def to_s
-      [client_port, hostname, host_port].join(':')
+      flag = reverse ? "-R" : "-L"
+      flag + ' ' + [client_port, hostname, host_port].join(':')
     end
   end
 

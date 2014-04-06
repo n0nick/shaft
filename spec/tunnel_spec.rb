@@ -1,6 +1,5 @@
 require 'spec_helper'
 
-#TODO 'reverse' option
 #TODO #start, #stop handle multiple binds
 
 describe Shaft::Tunnel do
@@ -199,6 +198,15 @@ describe Shaft::Tunnel::Bind do
         )
       }.to raise_error
     end
+
+    it 'defaults as reverse=false' do
+      bind = Shaft::Tunnel::Bind.new(
+        client_port: 33,
+        host_port: 55,
+        hostname: 'foo1'
+      )
+      bind.reverse.should eq false
+    end
   end
 
   describe '#to_s' do
@@ -208,8 +216,17 @@ describe Shaft::Tunnel::Bind do
         client_port: 33,
         host_port: 55
       )
+      bind.to_s.should eq "-L 33:host1:55"
+    end
 
-      bind.to_s.should eq "33:host1:55"
+    it 'reflects "reverse" when specified' do
+      bind = Shaft::Tunnel::Bind.new(
+        hostname: 'host1',
+        client_port: 33,
+        host_port: 55,
+        reverse: true
+      )
+      bind.to_s.should eq "-R 33:host1:55"
     end
   end
 end
