@@ -13,7 +13,7 @@ module Shaft
     end
 
     def bind
-      throw Error if self.binds.length != 1 #TODO
+      raise Tunnel::MultipleBindingsError.new if self.binds.length != 1
 
       self.binds.first
     end
@@ -90,6 +90,7 @@ module Shaft
     end
   end
 
-  class Tunnel::AlreadyActiveError < StandardError; end
-  class Tunnel::AlreadyInactiveError < StandardError; end
+  class Tunnel::MultipleBindingsError < StandardError; end
+  class Tunnel::AlreadyActiveError    < StandardError; end
+  class Tunnel::AlreadyInactiveError  < StandardError; end
 end

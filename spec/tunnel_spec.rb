@@ -45,6 +45,29 @@ describe Shaft::Tunnel do
     end
   end
 
+  describe '#bind' do
+    describe 'when 1 binding is defined' do
+      it 'returns it' do
+        tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
+        bind = nil
+        expect {
+          bind = tunnel.bind
+        }.to_not raise_error
+        bind.hostname.should eq 'other'
+      end
+    end
+
+    describe 'when more than 1 binding is defined' do
+      it 'raises an error' do
+        tunnel = Shaft::Tunnel.new(valid_host, [
+          { hostname: 'foo', client_port: 33, host_port: 44 },
+          { hostname: 'bar', client_port: 55, host_port: 66 }
+        ])
+        expect { tunnel.bind }.to raise_error Shaft::Tunnel::MultipleBindingsError
+      end
+    end
+  end
+
   describe '#start' do
     before :each do
       @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
