@@ -10,7 +10,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "thor"
 
-  gem.add_development_dependency "rspec",     "~> 2.14.1"
+  gem.add_development_dependency "rspec", "~> 2.14.1"
+  gem.add_development_dependency "guard-rspec", "~> 4.2.8"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
