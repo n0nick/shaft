@@ -49,6 +49,8 @@ describe Shaft::Tunnel do
   describe '#start' do
     before :each do
       @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
+      Process.stub(:spawn)
+      Process.stub(:detach)
     end
 
     it 'starts the SSH tunnel' do
