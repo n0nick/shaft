@@ -4,6 +4,12 @@ describe Shaft::Tunnel do
   valid_host = { name: 'some' }
   valid_bind = { hostname: 'other', client_port: 30, host_port: 50 }
 
+  before :each do
+    Process.stub(:spawn) { 13 }
+    Process.stub(:detach)
+    Process.stub(:kill)
+  end
+
   describe '#initialize' do
 
     it 'configures a host' do
@@ -71,8 +77,6 @@ describe Shaft::Tunnel do
     describe '#start' do
       before :each do
         @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-        Process.stub(:spawn)
-        Process.stub(:detach)
       end
 
       it 'starts the SSH tunnel' do
@@ -102,8 +106,6 @@ describe Shaft::Tunnel do
     describe '#stop' do
       before :each do
         @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-        Process.stub(:spawn) { 13 }
-        Process.stub(:detach)
         @tunnel.start
       end
 
@@ -129,7 +131,6 @@ describe Shaft::Tunnel do
       end
 
       it 'changes tunnel\'s status to "inactive"' do
-        Process.stub(:kill)
         @tunnel.stop
         @tunnel.status.should eq :inactive
       end
@@ -138,9 +139,6 @@ describe Shaft::Tunnel do
     describe '#restart' do
       before :each do
         @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-        Process.stub(:spawn) { 13 }
-        Process.stub(:detach)
-        Process.stub(:kill)
         @tunnel.start
       end
 
@@ -179,6 +177,10 @@ describe Shaft::Tunnel do
 
   describe 'when configured with multiple bindings' do
     before :each do
+      Process.stub(:spawn).and_return(20, 21, 22)
+    end
+
+    before :each do
       @tunnel = Shaft::Tunnel.new(valid_host, [
         { client_port: 55, host_port: 80, hostname: 'other1' },
         { client_port: 44, host_port: 90, hostname: 'other2' },
@@ -193,7 +195,6 @@ describe Shaft::Tunnel do
       end
 
       it 'should store all process PIDs' do
-        Process.stub(:spawn).and_return(20, 21, 22)
         @tunnel.start
         @tunnel.pids.should eq [20, 21, 22]
       end
@@ -202,8 +203,6 @@ describe Shaft::Tunnel do
 
     describe '#stop' do
       before :each do
-        Process.stub(:spawn).and_return(20, 21, 22)
-        Process.stub(:detach)
         @tunnel.start
       end
 
@@ -217,8 +216,6 @@ describe Shaft::Tunnel do
 
     describe '#restart' do
       before :each do
-        Process.stub(:spawn).and_return(20, 21, 22)
-        Process.stub(:detach)
         @tunnel.start
       end
 
@@ -228,7 +225,6 @@ describe Shaft::Tunnel do
       end
 
       it 'should fire up new processes' do
-        Process.stub(:kill)
         Process.should_receive(:spawn).exactly(3).times
         @tunnel.restart
       end
