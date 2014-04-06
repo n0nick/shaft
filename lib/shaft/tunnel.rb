@@ -1,6 +1,6 @@
 module Shaft
   class Tunnel
-    attr_reader :host, :binds, :status
+    attr_reader :host, :binds
 
     def initialize(host, bind)
       @host = Tunnel::Host.new(host)
@@ -8,8 +8,6 @@ module Shaft
       @binds = [bind].compact.flatten(1).map do |b|
         Tunnel::Bind.new(b)
       end
-
-      @status = :inactive
     end
 
     def bind
@@ -19,25 +17,21 @@ module Shaft
     end
 
     def start
-      raise Tunnel::AlreadyActiveError.new if status == :active
+      raise Tunnel::AlreadyActiveError.new if active?
 
       binds.each do |bind|
         pid = Process.spawn("ssh -N -p #{host} #{bind}")
         Process.detach pid
         pids << pid
       end
-
-      @status = :active
     end
 
     def stop
-      raise Tunnel::AlreadyInactiveError.new if status == :inactive
+      raise Tunnel::AlreadyInactiveError.new unless active?
 
       pids.each do |pid|
         Process.kill "INT", pid
       end
-
-      @status = :inactive
     end
 
     def restart
@@ -50,6 +44,20 @@ module Shaft
 
     def pids
       @pids ||= []
+    end
+
+    def active?
+      return false if pids.empty?
+
+      pids.inject(true) do |mem, pid|
+        mem && self.class.active_pid?(pid)
+      end
+    end
+
+    def self.active_pid?(pid)
+      Process.kill(0, pid) == 1
+    rescue Errno::ESRCH
+      false
     end
 
   end
