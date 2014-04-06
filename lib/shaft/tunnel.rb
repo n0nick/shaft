@@ -1,6 +1,6 @@
 module Shaft
   class Tunnel
-    attr_reader :host, :binds, :status, :pids
+    attr_reader :host, :binds, :status
 
     def initialize(host, bind)
       @host = Tunnel::Host.new(host)
@@ -21,11 +21,10 @@ module Shaft
     def start
       raise Tunnel::AlreadyActiveError.new if status == :active
 
-      @pids = []
       binds.each do |bind|
         pid = Process.spawn("ssh -N -p #{host} #{bind}")
         Process.detach pid
-        @pids << pid
+        pids << pid
       end
 
       @status = :active
@@ -34,7 +33,7 @@ module Shaft
     def stop
       raise Tunnel::AlreadyInactiveError.new if status == :inactive
 
-      @pids.each do |pid|
+      pids.each do |pid|
         Process.kill "INT", pid
       end
 
@@ -48,6 +47,11 @@ module Shaft
       end
       start
     end
+
+    def pids
+      @pids ||= []
+    end
+
   end
 
   class Tunnel::Host
