@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-#TODO #start, #stop handle multiple binds
-
 describe Shaft::Tunnel do
   valid_host = { name: 'some' }
   valid_bind = { hostname: 'other', client_port: 30, host_port: 50 }
@@ -68,110 +66,172 @@ describe Shaft::Tunnel do
     end
   end
 
-  describe '#start' do
-    before :each do
-      @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-      Process.stub(:spawn)
-      Process.stub(:detach)
+  describe 'when configured with single binding' do
+
+    describe '#start' do
+      before :each do
+        @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
+        Process.stub(:spawn)
+        Process.stub(:detach)
+      end
+
+      it 'starts the SSH tunnel' do
+        Process.should_receive(:spawn)
+          .with("ssh -N -p some -L 30:other:50") { 13 }
+        Process.should_receive(:detach).with(13)
+        @tunnel.start
+      end
+
+      it 'fails if tunnel was active' do
+        @tunnel.stub(:status) { :active }
+        expect { @tunnel.start }.to raise_error Shaft::Tunnel::AlreadyActiveError
+      end
+
+      it 'fails upon SSH error' do
+        Process.should_receive(:spawn) { raise Error }
+        expect { @tunnel.start }.to raise_error
+        @tunnel.status.should eq :inactive
+      end
+
+      it 'changes tunnel\'s status to "active"' do
+        @tunnel.start
+        @tunnel.status.should eq :active
+      end
     end
 
-    it 'starts the SSH tunnel' do
-      Process.should_receive(:spawn)
-        .with("ssh -N -p some -L 30:other:50") { 13 }
-      Process.should_receive(:detach).with(13)
-      @tunnel.start
+    describe '#stop' do
+      before :each do
+        @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
+        Process.stub(:spawn) { 13 }
+        Process.stub(:detach)
+        @tunnel.start
+      end
+
+      it 'kills the SSH tunnel' do
+        Process.should_receive(:kill)
+          .with("INT", 13)
+        @tunnel.stop
+      end
+
+      it 'fails if tunnel wasn\'t active' do
+        @tunnel.stub(:status) { :inactive }
+        expect {
+          @tunnel.stop
+        }.to raise_error Shaft::Tunnel::AlreadyInactiveError
+      end
+
+      it 'fails upon kill error' do
+        Process.stub(:kill) { raise Errno::ESRCH }
+        expect {
+          @tunnel.stop
+        }.to raise_error
+        @tunnel.status.should eq :active
+      end
+
+      it 'changes tunnel\'s status to "inactive"' do
+        Process.stub(:kill)
+        @tunnel.stop
+        @tunnel.status.should eq :inactive
+      end
     end
 
-    it 'fails if tunnel was active' do
-      @tunnel.stub(:status) { :active }
-      expect { @tunnel.start }.to raise_error Shaft::Tunnel::AlreadyActiveError
+    describe '#restart' do
+      before :each do
+        @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
+        Process.stub(:spawn) { 13 }
+        Process.stub(:detach)
+        Process.stub(:kill)
+        @tunnel.start
+      end
+
+      it 'stops the previous tunnel process' do
+        Process.should_receive(:kill).with("INT", 13)
+        @tunnel.restart
+      end
+
+      it 'starts a new tunnel process' do
+        Process.should_receive(:spawn) { 14 }
+        @tunnel.restart
+      end
+
+      it 'doesn\'t fail if tunnel wasn\'t active' do
+        @tunnel.stop
+        expect {
+          @tunnel.restart
+        }.to_not raise_error
+        @tunnel.status.should eq :active
+      end
+
+      it 'fails upon start errors' do
+        @tunnel.stub(:start) { raise Error }
+        expect {
+          @tunnel.restart
+        }.to raise_error
+      end
+
+      it 'changes tunnel\'s status to "active"' do
+        @tunnel.restart
+        @tunnel.status.should eq :active
+      end
     end
 
-    it 'fails upon SSH error' do
-      Process.should_receive(:spawn) { raise Error }
-      expect { @tunnel.start }.to raise_error
-      @tunnel.status.should eq :inactive
-    end
-
-    it 'changes tunnel\'s status to "active"' do
-      @tunnel.start
-      @tunnel.status.should eq :active
-    end
   end
 
-  describe '#stop' do
+  describe 'when configured with multiple bindings' do
     before :each do
-      @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-      Process.stub(:spawn) { 13 }
-      Process.stub(:detach)
-      @tunnel.start
+      @tunnel = Shaft::Tunnel.new(valid_host, [
+        { client_port: 55, host_port: 80, hostname: 'other1' },
+        { client_port: 44, host_port: 90, hostname: 'other2' },
+        { client_port: 33, host_port: 87, hostname: 'other3' },
+      ])
     end
 
-    it 'kills the SSH tunnel' do
-      Process.should_receive(:kill)
-        .with("INT", 13)
-      @tunnel.stop
+    describe '#start' do
+      it 'should start a process for each binding' do
+        Process.should_receive(:spawn).exactly(3).times { 20 }
+        @tunnel.start
+      end
+
+      it 'should store all process PIDs' do
+        Process.stub(:spawn).and_return(20, 21, 22)
+        @tunnel.start
+        @tunnel.pids.should eq [20, 21, 22]
+      end
+
     end
 
-    it 'fails if tunnel wasn\'t active' do
-      @tunnel.stub(:status) { :inactive }
-      expect {
+    describe '#stop' do
+      before :each do
+        Process.stub(:spawn).and_return(20, 21, 22)
+        Process.stub(:detach)
+        @tunnel.start
+      end
+
+      it 'should stop all started processes' do
+        Process.should_receive(:kill).once.ordered.with("INT", 20)
+        Process.should_receive(:kill).once.ordered.with("INT", 21)
+        Process.should_receive(:kill).once.ordered.with("INT", 22)
         @tunnel.stop
-      }.to raise_error Shaft::Tunnel::AlreadyInactiveError
+      end
     end
 
-    it 'fails upon kill error' do
-      Process.stub(:kill) { raise Errno::ESRCH }
-      expect {
-        @tunnel.stop
-      }.to raise_error
-      @tunnel.status.should eq :active
-    end
+    describe '#restart' do
+      before :each do
+        Process.stub(:spawn).and_return(20, 21, 22)
+        Process.stub(:detach)
+        @tunnel.start
+      end
 
-    it 'changes tunnel\'s status to "inactive"' do
-      Process.stub(:kill)
-      @tunnel.stop
-      @tunnel.status.should eq :inactive
-    end
-  end
-
-  describe '#restart' do
-    before :each do
-      @tunnel = Shaft::Tunnel.new(valid_host, valid_bind)
-      Process.stub(:spawn) { 13 }
-      Process.stub(:detach)
-      Process.stub(:kill)
-      @tunnel.start
-    end
-
-    it 'stops the previous tunnel process' do
-      Process.should_receive(:kill).with("INT", 13)
-      @tunnel.restart
-    end
-
-    it 'starts a new tunnel process' do
-      Process.should_receive(:spawn) { 14 }
-      @tunnel.restart
-    end
-
-    it 'doesn\'t fail if tunnel wasn\'t active' do
-      @tunnel.stop
-      expect {
+      it 'should stop all started processes' do
+        Process.should_receive(:kill).exactly(3).times
         @tunnel.restart
-      }.to_not raise_error
-      @tunnel.status.should eq :active
-    end
+      end
 
-    it 'fails upon start errors' do
-      @tunnel.stub(:start) { raise Error }
-      expect {
+      it 'should fire up new processes' do
+        Process.stub(:kill)
+        Process.should_receive(:spawn).exactly(3).times
         @tunnel.restart
-      }.to raise_error
-    end
-
-    it 'changes tunnel\'s status to "active"' do
-      @tunnel.restart
-      @tunnel.status.should eq :active
+      end
     end
   end
 end
