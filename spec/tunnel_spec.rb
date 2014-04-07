@@ -3,6 +3,9 @@ require 'spec_helper'
 describe Shaft::Tunnel do
   valid_host = { name: 'some' }
   valid_bind = { hostname: 'other', client_port: 30, host_port: 50 }
+  valid_multi_binds = [
+    { client_port: 55, host_port: 81, hostname: 'other_host1' },
+    { client_port: 44, host_port: 91, hostname: 'other_host2' }]
 
   before :each do
     Process.stub(:spawn) { 13 }
@@ -13,9 +16,7 @@ describe Shaft::Tunnel do
   describe '#initialize' do
 
     it 'configures a host' do
-      tunnel = Shaft::Tunnel.new({ name: 'hostname',
-                                   port: 23,
-                                   user: 'yuzer' },
+      tunnel = Shaft::Tunnel.new({ name: 'hostname', port: 23, user: 'yuzer' },
                                  valid_bind)
       tunnel.host.name.should eq 'hostname'
       tunnel.host.port.should eq 23
@@ -24,19 +25,14 @@ describe Shaft::Tunnel do
 
     it 'configures a binding' do
       tunnel = Shaft::Tunnel.new(valid_host,
-                                 client_port: 55,
-                                 host_port: 80,
-                                 hostname: 'othername')
+                                 client_port: 55, host_port: 80, hostname: 'othername')
       tunnel.bind.client_port.should eq 55
       tunnel.bind.host_port.should eq 80
       tunnel.bind.hostname.should eq 'othername'
     end
 
     it 'can configure multiple bindings' do
-      tunnel = Shaft::Tunnel.new(valid_host, [
-        { client_port: 55, host_port: 81, hostname: 'other_host1' },
-        { client_port: 44, host_port: 91, hostname: 'other_host2' }
-      ])
+      tunnel = Shaft::Tunnel.new(valid_host, valid_multi_binds)
 
       tunnel.binds.length.should eq 2
       tunnel.binds[0].hostname.should eq 'other_host1'
@@ -63,10 +59,7 @@ describe Shaft::Tunnel do
 
     describe 'when more than 1 binding is defined' do
       it 'raises an error' do
-        tunnel = Shaft::Tunnel.new(valid_host, [
-          { hostname: 'foo', client_port: 33, host_port: 44 },
-          { hostname: 'bar', client_port: 55, host_port: 66 }
-        ])
+        tunnel = Shaft::Tunnel.new(valid_host, valid_multi_binds)
         expect { tunnel.bind }.to raise_error Shaft::Tunnel::MultipleBindingsError
       end
     end
@@ -184,47 +177,42 @@ describe Shaft::Tunnel do
 
   describe 'when configured with multiple bindings' do
     before :each do
-      Process.stub(:spawn).and_return(20, 21, 22)
+      Process.stub(:spawn).and_return(20, 21)
     end
 
     before :each do
-      @tunnel = Shaft::Tunnel.new(valid_host, [
-        { client_port: 55, host_port: 80, hostname: 'other1' },
-        { client_port: 44, host_port: 90, hostname: 'other2' },
-        { client_port: 33, host_port: 87, hostname: 'other3' },
-      ])
+      @tunnel = Shaft::Tunnel.new(valid_host, valid_multi_binds)
     end
 
     describe '#start' do
       it 'should start a process for each binding' do
-        Process.should_receive(:spawn).exactly(3).times { 20 }
+        Process.should_receive(:spawn).twice.and_return(20, 21)
         @tunnel.start
       end
 
       it 'should store all process PIDs' do
         @tunnel.start
-        @tunnel.pids.should eq [20, 21, 22]
+        @tunnel.pids.should eq [20, 21]
       end
 
     end
 
     describe '#stop' do
       before :each do
-        @tunnel.stub(:pids) { [20,21,22] }
+        @tunnel.stub(:pids) { [20,21] }
         @tunnel.stub(:active?) { true }
       end
 
       it 'should stop all started processes' do
         Process.should_receive(:kill).once.ordered.with("INT", 20)
         Process.should_receive(:kill).once.ordered.with("INT", 21)
-        Process.should_receive(:kill).once.ordered.with("INT", 22)
         @tunnel.stop
       end
     end
 
     describe '#restart' do
       before :each do
-        @tunnel.stub(:pids) { [20,21,22] }
+        @tunnel.stub(:pids) { [20,21] }
         @tunnel.stub(:active?) { true }
         @tunnel.stub(:stop) {
           @tunnel.stub(:active?) { false }
